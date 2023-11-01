@@ -42,8 +42,8 @@ class Heroe:
         # Caminar
         self.x = x
         self.y = y
-        self.velx = 10
-        self.vely = 10
+        self.movx = 10
+        self.movy = 10
         self.face_right = True
         self.face_left = False
         self.stepIndex = 0
@@ -55,11 +55,11 @@ class Heroe:
 #Esta funcion esta encargada de mover al heroe 
     def move_hero(self, userInput):
         if userInput[pygame.K_d] and self.x <= 760:
-            self.x += self.velx
+            self.x += self.movx
             self.face_right = True
             self.face_left = False
         elif userInput[pygame.K_a] and self.x >= 0:
-            self.x -= self.velx
+            self.x -= self.movx
             self.face_right = False
             self.face_left = True
         else:
@@ -81,11 +81,11 @@ class Heroe:
         if userInput[pygame.K_SPACE] and self.jump is False:
             self.jump = True
         if self.jump:
-            self.y -= self.vely*4
-            self.vely -= 1
-        if self.vely < -10:
+            self.y -= self.movy*4
+            self.movy -= 1
+        if self.movy < -10:
             self.jump = False
-            self.vely = 10
+            self.movy = 10
 #La direccion del salto 
     def direction(self):
         if self.face_right:
