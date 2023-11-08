@@ -1,5 +1,5 @@
 import pygame 
-from pygame.locals import K_a,K_d,K_SPACE, K_RETURN
+from pygame.locals import K_a,K_d,K_SPACE, K_RETURN, K_r
 import sys
 import random
 
@@ -9,7 +9,7 @@ ALTURA = 800
 pygame.init()#Se inicializa pygame
                                 #Altura#Ancho
 screen = pygame.display.set_mode((ALTURA,ANCHO))#La ventana
-pygame.display.set_caption("GAME 0.2")#Titulo que aparece en la ventana
+pygame.display.set_caption("GAME 0.3")#Titulo que aparece en la ventana
 
 background_image_0 = pygame.image.load("Img/parallax_forest_pack/layers/parallax-forest-back-trees.png")
 background_image_1 = pygame.image.load("Img/parallax_forest_pack/layers/parallax-forest-front-trees.png")
@@ -75,8 +75,11 @@ class Heroe:
         # Ataque
         self.attack = False
         # Vida
-        self.hitbox = (self.x, self.y, 64, 64)
-        
+        self.hitbox = pygame.Rect(self.x, self.y, 64, 64)
+        self.vida = 30
+        self.vidas = 1
+        self.vivo = True
+
 ##########################################MOVIMIENTO############################################################
     def move_hero(self, userInput):
         #Esta funcion esta encargada de mover al heroe 
@@ -92,19 +95,27 @@ class Heroe:
             self.stepIndex = 0
     def draw(self, win,userInput):
         #Esta funcion esta encargada de dibujar la hitbox y de los cambios de los sprites
-        self.hitbox = (self.x + 5, self.y + 15, 30, 40)
+        self.hitbox = pygame.Rect(self.x + 5, self.y + 15, 30, 40)
         pygame.draw.rect(win, (0,0,0), self.hitbox, 1)
         
         if userInput[pygame.K_RETURN]:
+            self.colision = True
             if self.stepIndex >= 8:
                 self.stepIndex = 0
             if self.face_left:
                 win.blit(attack_left[self.stepIndex], (self.x, self.y))
                 self.stepIndex += 1
+                self.espada_hitbox = pygame.Rect(self.x - 25, self.y + 15, 30, 40)
+                pygame.draw.rect(screen, (0,0,0), self.espada_hitbox, 1)
+                self.slash()
             if self.face_right:
                 win.blit(attack_right[self.stepIndex], (self.x, self.y))
                 self.stepIndex += 1
+                self.espada_hitbox = pygame.Rect(self.x + 25, self.y + 15, 30, 40)
+                pygame.draw.rect(screen, (0,0,0), self.espada_hitbox, 1)
+                self.slash()
         elif pygame.K_UP:
+            self.colision = False
             if self.stepIndex >= 8:
                 self.stepIndex = 0
             if self.face_left:
@@ -129,12 +140,12 @@ class Heroe:
             return 1
         if self.face_left:
             return -1
-    def slash(self,userInput):
+    def slash(self):
         #Funcion del ataque
-        if userInput[pygame.K_RETURN] and self.attack == False:
-            self.attack = True
-        if userInput[pygame.K_UP]:
-            self.attack = False
+        for enemigo in enemigos:
+                if self.espada_hitbox.colliderect(enemigo.hitbox):
+                    enemigo.vida -= 1
+                    print("jugador golpea enemigo ")
 
 class Enemigo:
     def __init__(self, x, y , direction):
@@ -143,13 +154,14 @@ class Enemigo:
         self.direction = direction
         self.stepIndex = 0
         #Vida
-        self.hitbox = (self.x,self.y,64,64)
+        self.hitbox = pygame.Rect(self.x,self.y,64,64)
+        self.vida = 1
         self.images = [pygame.image.load("Img/sprite/Enemy/radioactive monsters not glowing.png")]
     def step(self):
         if self.stepIndex >= 1:
             self.stepIndex = 0
     def draw(self,win):
-        self.hitbox = (self.x + 5, self.y + 15, 30, 40)
+        self.hitbox = pygame.Rect(self.x + 5, self.y + 15, 30, 40)
         pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
         self.step()
         if self.direction == left:
@@ -161,6 +173,16 @@ class Enemigo:
             self.x -= 5
         if self.direction == right:
             self.x += 5
+    def hit(self):
+        if jugador.hitbox.colliderect(self.hitbox):
+            if jugador.vida > 0:
+                jugador.vida -= 1
+                print("enemigo golpea jugador")
+                if jugador.vida == 0 and jugador.vidas > 0:
+                    jugador.vidas -= 1
+                    jugador.vida = 30
+                elif jugador.vida == 0 and jugador.vidas == 0:
+                    jugador.vivo = False
 
     def off_screen(self):
         return not(self.x >= -10 and self.x <= 770)
@@ -171,9 +193,23 @@ def draw_game():
     screen.fill((0, 0, 0))
     screen.blit(background_image_transform_0, (0, 0))
     screen.blit(background_image_transform_1, (2, 2))
+    #Dibuja al jugador
     jugador.draw(screen,tecla)
+    #Dibuja a los enemigos
     for enemigo in enemigos:
         monstruo.draw(screen)
+    
+    if jugador.vivo == False:
+        screen.fill((0, 0, 0))
+        font = pygame.font.Font('freesansbold.ttf',32)
+        text = font.render('HAS MUERTO! Presiona R para reiniciar', True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.center =(400,200)
+        screen.blit(text, text_rect)
+        if tecla[pygame.K_r]:
+            jugador.vivo = True
+            jugador.vidas = 1
+            jugador.vida = 30
     pygame.time.delay(30)
     pygame.display.update()
 #Declara al jugador y setea donde se lo dibuja
@@ -197,7 +233,6 @@ while running:
         tecla = pygame.key.get_pressed()
 
     jugador.move_hero(tecla)
-    jugador.slash(tecla)
     jugador.jump_motion(tecla)
     
     #Se dibuja el Enemigo
@@ -211,6 +246,9 @@ while running:
             enemigos.append(monstruo)
     for enemigo in enemigos:
         monstruo.move()
+        monstruo.hit()
+        if monstruo.vida == 0:
+            enemigos.remove(monstruo)
         if monstruo.off_screen():
             enemigos.remove(monstruo)
 
