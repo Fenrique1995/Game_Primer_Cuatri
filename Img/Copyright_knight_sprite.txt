@@ -1,0 +1,4 @@
+This is an animated Knight actor for side-scrolling games. This art comes from PlatForge, the open source game maker for Android phones. For more open art from PlatForge, visit the collection.
+
+Attribution Instructions: 
+Please attribute this art to the PlatForge project, as well as the artist: Stafford McIntyre
