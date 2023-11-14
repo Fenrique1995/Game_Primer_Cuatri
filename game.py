@@ -10,7 +10,7 @@ ALTURA = 800
 pygame.init()#Se inicializa pygame
                                 #Altura#Ancho
 screen = pygame.display.set_mode((ALTURA,ANCHO))#La ventana
-pygame.display.set_caption("GAME 1.2")#Titulo que aparece en la ventana
+pygame.display.set_caption("GAME 1.3")#Titulo que aparece en la ventana
 
 background_image_0 = pygame.image.load("Img/parallax_forest_pack/layers/parallax-forest-back-trees.png")
 background_image_1 = pygame.image.load("Img/parallax_forest_pack/layers/parallax-forest-front-trees.png")
@@ -181,7 +181,7 @@ class Enemigo:
         self.images = [pygame.image.load("Img/sprite/Enemy/Grue_01.png"),pygame.image.load("Img/sprite/Enemy/Grue_02.png")]
         self.hit_sound_02 = pygame.mixer.Sound("Sound/hit28.mp3.flac")
     def draw(self,win):
-        self.hitbox = pygame.Rect(self.x + 5, self.y + 15, 30, 40)
+        self.hitbox = pygame.Rect(self.x+15, self.y + 15, 30, 40)
         pygame.draw.rect(win, (0, 0, 0), self.hitbox, 1)
         if self.direction == left:
             win.blit(self.images[1], (self.x, self.y))
