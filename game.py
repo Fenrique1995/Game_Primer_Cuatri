@@ -350,7 +350,10 @@ def save_to_json(variable_name, obj_attribute, archive):
     except FileNotFoundError:
         data = {}
 
-    data[variable_name] = obj_attribute
+    if variable_name == "":
+        data["Anon"] = obj_attribute
+    else:
+        data[variable_name] = obj_attribute
 
     with open(archive, 'w') as json_file:
         json.dump(data, json_file)
