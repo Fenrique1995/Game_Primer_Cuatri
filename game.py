@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import K_a, K_d, K_SPACE, K_RETURN, K_r, QUIT, K_BACKSPACE
 import sys
 import random
+import sqlite3
 import json
 
 ANCHO = 600
@@ -343,42 +344,76 @@ fps = pygame.time.Clock()
 mouse_pos = (0,0)
 
 #En esta funcion se encarga de guardar el nombre del jugador y el score acumulado al terminar el juego
-def save_to_json(variable_name, obj_attribute, archive):
+def save_to_sqlite(variable_name, obj_attribute):
     try:
-        with open(archive, 'r') as json_file:
-            data = json.load(json_file)
-    except FileNotFoundError:
-        data = {}
+        mi_conexion = sqlite3.connect('src/mi_basede_datos.sql')
+        cursor = mi_conexion.cursor()
 
-    if variable_name == "":
-        data["Anon"] = obj_attribute
-    else:
-        data[variable_name] = obj_attribute
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS mi_tabla (
+                id INTEGER PRIMARY KEY,
+                nombre TEXT,
+                score INTEGER
+            )
+        ''')
 
-    with open(archive, 'w') as json_file:
-        json.dump(data, json_file)
+        # Verificar si el nombre ya existe en la base de datos
+        cursor.execute('SELECT score FROM mi_tabla WHERE nombre = ?', (variable_name,))
+        resultado = cursor.fetchone()
 
-def load_json(file_path):
+        if variable_name == "Anon" and resultado is not None:
+            # Si el nombre es "Anon" y ya existe, verificar si el nuevo score es mayor
+            score_existente = resultado[0]
+            if obj_attribute > score_existente:
+                # El nuevo score es mayor, actualizar el score existente
+                cursor.execute('''
+                    UPDATE mi_tabla
+                    SET score = ?
+                    WHERE nombre = "Anon"
+                ''', (obj_attribute,))
+        else:
+            # Si el nombre no existe o no es "Anon", realizar la inserción
+            if variable_name == "":
+                cursor.execute('''
+                    INSERT INTO mi_tabla (nombre, score)
+                    VALUES (?, ?)
+                ''', ("Anon", obj_attribute))
+            else:
+                cursor.execute('''
+                    INSERT INTO mi_tabla (nombre, score)
+                    VALUES (?, ?)
+                ''', (variable_name, obj_attribute))
+
+        mi_conexion.commit()
+        mi_conexion.close()
+
+    except Exception as e:
+        print(f"Se produjo una excepción al guardar en la base de datos: {e}")
+
+def load_from_sqlite():
     try:
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-        return data
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
+        mi_conexion = sqlite3.connect('src/mi_basede_datos.sql')
+        cursor = mi_conexion.cursor()
+
+        cursor.execute('SELECT nombre, score FROM mi_tabla')
+        rows = cursor.fetchall()
+
+        mi_conexion.close()
+
+        return {nombre: score for nombre, score in rows}
+    except Exception as e:
+        print(f"Se produjo una excepción al cargar desde la base de datos: {e}")
         return {}
 
-json_file_path = 'player_data.json'
-json_data = load_json(json_file_path)
+json_data = load_from_sqlite()
 
+def display_sorted_data(data):
+    sorted_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
 
-def display_sorted_json(json_data):
-    sorted_data = sorted(json_data.items(), key=lambda x: x[1], reverse=True)
+    y_position = (ALTURA - len(sorted_data) * 30) // 2  # Centrar verticalmente
 
-    y_position = (ALTURA - len(sorted_data) * 80) // 2  # Centrar verticalmente
-    max_items = min(10, len(sorted_data))  # Limitar a 10 elementos
-
-    for i in range(max_items):
-        text = font.render(f"{sorted_data[i][0]}: {sorted_data[i][1]}", True, (255, 255, 255))
+    for nombre, score in sorted_data:
+        text = font.render(f"{nombre}: {score}", True, (255, 255, 255))
         text_rect = text.get_rect(center=(ALTURA // 2, y_position))
         screen.blit(text, text_rect)
         y_position += 30
@@ -390,7 +425,7 @@ def display_scores_screen():
     text_rect = text.get_rect(center=(400, 50))
     screen.blit(text, text_rect)
 
-    display_sorted_json(json_data)
+    display_sorted_data(json_data)
     boton_return.draw(screen, font)
 
 menu_music = pygame.mixer.Sound("Sound/awesomeness.wav")
@@ -504,7 +539,7 @@ while running:
 
     pygame.display.flip() #Muestra los cambios
 
-save_to_json(jugador.nombre, jugador.score, "player_data.json")
+save_to_sqlite(jugador.nombre, jugador.score)
 
 pygame.quit()
 sys.exit(404) #se usa para indicar si el programa terminó con éxito o con un error (404)
