@@ -61,6 +61,9 @@ attack_right= [pygame.image.load("Img/sprite/Ataque/Attack_R/Atk_R1.png"),
 #Heroe vida
 heart = [pygame.image.load("Img/sprite/Life/hearts/heart_01.png")]
 
+#Musica Menu
+menu_music = pygame.mixer.Sound("Sound/awesomeness.wav")
+
 
 class Heroe:
     def __init__(self, x, y):
@@ -269,23 +272,6 @@ def draw_start_screen(boton_start,boton_score):
     
     menu_music.play(1)
 
-#Boton de start
-verde = (0, 255, 0)
-
-boton_start_rect = pygame.Rect((300, 250, 150, 50))
-boton_start = Button(boton_start_rect, 'Start', (0, 128, 0), verde , lambda: None)
-boton_score_rect = pygame.Rect((300, 350, 150, 50))
-boton_score = Button(boton_score_rect, 'Score', (0, 128, 0), verde , lambda: None)
-boton_return_rect = pygame.Rect((50, 50, 150, 50))
-boton_return = Button(boton_return_rect, 'Volver', (0, 128, 0), verde , lambda: None)
-
-#nombre del usuario y su funcion input
-font = pygame.font.Font('freesansbold.ttf', 32)
-nombre = ""
-input_rect = pygame.Rect(310,310,140,32)
-blanco = (255, 255, 255)
-activo = False
-
 def input_nombre(): 
     boton_start.check_hover(mouse_pos)
     text_surface = font.render(nombre,True, (255, 255, 255))
@@ -334,15 +320,6 @@ def draw_game():
             heart_02.visible = True
     pygame.time.delay(30)
     pygame.display.update()
-
-#Declara al jugador y setea donde se lo dibuja
-                #Y   #X
-jugador = Heroe(250,450)
-#Declara una lista para enemigos
-enemigos = []
-
-fps = pygame.time.Clock()
-mouse_pos = (0,0)
 
 #En esta funcion se encarga de guardar el nombre del jugador y el score acumulado al terminar el juego
 def save_to_sqlite(variable_name, obj_attribute):
@@ -429,7 +406,39 @@ def display_scores_screen():
     display_sorted_data(sql_data)
     boton_return.draw(screen, font)
 
-menu_music = pygame.mixer.Sound("Sound/awesomeness.wav")
+
+
+#Boton de start
+verde = (0, 255, 0)
+
+boton_start_rect = pygame.Rect((300, 250, 150, 50))
+boton_start = Button(boton_start_rect, 'Start', (0, 128, 0), verde , lambda: None)
+boton_score_rect = pygame.Rect((300, 350, 150, 50))
+boton_score = Button(boton_score_rect, 'Score', (0, 128, 0), verde , lambda: None)
+boton_return_rect = pygame.Rect((50, 50, 150, 50))
+boton_return = Button(boton_return_rect, 'Volver', (0, 128, 0), verde , lambda: None)
+
+#nombre del usuario y su funcion input
+font = pygame.font.Font('freesansbold.ttf', 32)
+nombre = ""
+input_rect = pygame.Rect(310,310,140,32)
+blanco = (255, 255, 255)
+activo = False
+
+
+
+#Declara al jugador y setea donde se lo dibuja
+                #Y   #X
+jugador = Heroe(250,450)
+#Declara una lista para enemigos
+enemigos = []
+
+fps = pygame.time.Clock()
+mouse_pos = (0,0)
+
+heart_01 = Corazon(750,20)
+heart_02 = Corazon(720,20)
+heart_03 = Corazon(690,20)
 
 #########################BUCLE PRINCIPAL#############################
 running = True
