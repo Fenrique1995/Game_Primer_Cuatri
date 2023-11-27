@@ -406,7 +406,7 @@ def load_from_sqlite():
         print(f"Se produjo una excepción al cargar desde la base de datos: {e}")
         return {}
 
-json_data = load_from_sqlite()
+sql_data = load_from_sqlite()
 
 def display_sorted_data(data):
     sorted_data = sorted(data.items(), key=lambda x: x[1], reverse=True)
@@ -426,7 +426,7 @@ def display_scores_screen():
     text_rect = text.get_rect(center=(400, 50))
     screen.blit(text, text_rect)
 
-    display_sorted_data(json_data)
+    display_sorted_data(sql_data)
     boton_return.draw(screen, font)
 
 menu_music = pygame.mixer.Sound("Sound/awesomeness.wav")
