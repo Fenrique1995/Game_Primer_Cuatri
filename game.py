@@ -318,6 +318,7 @@ def draw_game():
         monstruo.draw(screen)
     
     if jugador.vivo == False:
+        monstruo.hit_sound_02.stop()
         screen.fill((0, 0, 0))
         font = pygame.font.Font('freesansbold.ttf',32)
         text = font.render('HAS MUERTO! Presiona R para reiniciar', True, (255, 255, 255))
